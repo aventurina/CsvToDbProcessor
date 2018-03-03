@@ -19,6 +19,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 @Configuration
 @EnableBatchProcessing
 public class BatchConfiguration {
@@ -54,12 +57,18 @@ public class BatchConfiguration {
 
     @Bean
     public JdbcBatchItemWriter<TerritoryAddress> writer() {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String now = simpleDateFormat.format(new Date());
+
         JdbcBatchItemWriter<TerritoryAddress> writer = new JdbcBatchItemWriter<TerritoryAddress>();
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<TerritoryAddress>());
         writer.setDataSource(dataSource);
-        writer.setSql("INSERT INTO addresses (FirstName, LastName, Street, City, StateId, ZipCode, Notes) " +
-                        "VALUES(:firstName, :lastName, :street, :city, :stateId, :zipCode, :notes)");
+        writer.setSql("INSERT INTO addresses (FirstName, LastName, Street, City, StateId, ZipCode, Notes, " +
+                "OrderNumber, AddressStatusId, AddressStatusDate, AddressTypeId, DateCreated, CreatedBy, Deleted) " +
+                "VALUES(:firstName, :lastName, :street, :city, :stateId, :zipCode, :notes, 0, 1, '" + now + "', " +
+                "1, '" + now + "', 1, 0)");
         /*
+        TODO: Don't insert if there's already a duplicate record
         writer.setSql("INSERT INTO addresses (FirstName, LastName, Street, City, StateId, ZipCode, Notes) " +
             "SELECT :firstName, :lastName, :street, :city, :stateId, :zipCode, :notes " +
             "FROM addresses " +
